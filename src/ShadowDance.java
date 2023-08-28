@@ -12,34 +12,41 @@ import java.util.List;
  * @author William Spongberg
  */
 public class ShadowDance extends AbstractGame {
+    // window dimensions, title and background
     private final static int WINDOW_WIDTH = 1024;
     private final static int WINDOW_HEIGHT = 768;
     private final static String GAME_TITLE = "SHADOW DANCE";
     private final Image IMAGE_BACKGROUND = new Image("res/background.png");
 
+    // font
     private final static String FILE_FONT = "res/FSO8BITR.TTF";
     private final Font FONT = new Font(FILE_FONT, 64);
     private final Font FONT_SMALL = new Font(FILE_FONT, 24);
 
+    // title screen strings
     private static final String TITLE = "SHADOW DANCE";
     private static final String START_1 = "PRESS SPACE TO START";
     private static final String START_2 = "USE ARROW KEYS TO PLAY";
+    private static final String PAUSED = "PAUSED";
 
+    // file level names
     private static final String FILE_LEVEL1 = "res/test1-60.csv";
 
+    // game logic booleans
     private boolean paused = false;
     private boolean started = true;
     private boolean ended = false;
 
+    // frame counter
     private int frame = 0;
 
-    private Level level1;
+    // any number of levels
+    private List<Level> levels = new ArrayList<Level>();
 
     public ShadowDance() {
         super(WINDOW_WIDTH, WINDOW_HEIGHT, GAME_TITLE);
 
-        // this.readCSV("res/test1.csv");
-        level1 = this.readCSV(FILE_LEVEL1);
+        this.levels.add(readCSV(FILE_LEVEL1));
     }
 
     /**
@@ -50,6 +57,7 @@ public class ShadowDance extends AbstractGame {
         List<List<String>> records = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
             String line;
+            // read until end of file
             while ((line = br.readLine()) != null) {
                 String[] values = line.split(",");
                 records.add(Arrays.asList(values));
@@ -57,7 +65,6 @@ public class ShadowDance extends AbstractGame {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         return new Level(records);
     }
 
@@ -97,27 +104,41 @@ public class ShadowDance extends AbstractGame {
         }
 
         // game logic
-        if (!paused) {
+        if (paused) {
+            // pause screen - object/class/method?
+            FONT.drawString(PAUSED, WINDOW_WIDTH / 2 - FONT.getWidth(PAUSED) / 2, WINDOW_HEIGHT / 2);
+        } else { // if not paused
             // increment frame counter
             frame++;
 
+            // drawing frame counter [testing]
+            FONT_SMALL.drawString("Frame " + frame, WINDOW_WIDTH - FONT.getWidth("Frame " + frame)/3 - 50, 50);
+
+            // if space pressed start game
             if (input.wasPressed(Keys.SPACE)) {
                 started = false;
             }
 
+            // if game started
             if (started) {
                 // start screen - object/class/method?
                 FONT.drawString(TITLE, WINDOW_WIDTH / 2 - FONT.getWidth(TITLE) / 2, WINDOW_HEIGHT / 2 - 100);
                 FONT_SMALL.drawString(START_1, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(START_1) / 2, WINDOW_HEIGHT / 2);
-                FONT_SMALL.drawString(START_2, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(START_2) / 2, WINDOW_HEIGHT / 2 + 50);
-            }
-            else if (ended) {
+                FONT_SMALL.drawString(START_2, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(START_2) / 2,
+                        WINDOW_HEIGHT / 2 + 50);
+            } else if (ended) { // if game ended
                 // end screen - object/class/method?
 
-            }
-            else {
-                // levels
-                level1.update(frame);
+            } else { // if game in progress
+                // update levels
+                for (Level level : this.levels) {
+                    if (level.isActive())
+                        // draw frame counter [testing]
+                        FONT_SMALL.drawString("" + level.checkInput(input), 50, 100);
+                        level.update(frame, input);
+                        // draw score
+                        FONT_SMALL.drawString("Score " + level.getScore(), 50, 50);
+                }
             }
         }
     }
