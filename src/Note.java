@@ -41,6 +41,10 @@ public class Note {
     private final Font FONT_SMALL = new Font(FILE_FONT, 20);
 
     public Note(String dir, String type, int delay) {
+        reset(dir, type, delay);
+    }
+
+    public void reset(String dir, String type, int delay) {
         // if held set to held
         if (type.equals("Hold")) {
             this.is_held = true;
@@ -82,17 +86,36 @@ public class Note {
         this.delay = delay;
     }
 
+    public void reset(Note note) {
+        this.image = note.getImage();
+        this.delay = note.getDelay();
+        this.dir = note.getDir();
+        this.is_held = note.isHeld();
+        this.y = 0;
+        this.start_y = note.start_y;
+
+        this.active = true;
+        this.visual = false;
+    }
+
     public void update(int frame, int lane_x[]) {
-        if (active) {
+        // if active or visual
+        if (this.active || this.visual) {
             // calculate y position
-            this.y = start_y + (frame - this.delay) * 4;
+            // if 60 hz
+            if (ShadowDance.hasRefresh60()) {
+                this.y = start_y + (frame - this.delay) * 4;
+            // else is 120 hz (according to marker)
+            } else {
+                this.y = start_y + (frame - this.delay) * 2;
+            }
 
             // if note is on screen
-            if (this.y > start_y && (this.y < ShadowDance.getHeight() + this.image.getWidth() / 2)) {
+            if ((this.y > start_y) && (this.y < (ShadowDance.getHeight() + this.image.getWidth() / 2))) {
                 // now visual
                 if (!this.visual)
                     this.visual = true;
-
+                
                 // draw note
                 this.image.draw(lane_x[this.dir], this.y);
 
@@ -109,8 +132,9 @@ public class Note {
                         this.y + 10, opt);
                 /* */
             }
-            // if off screen, no longer need to display note
-            else if (this.y > ShadowDance.getHeight() + this.image.getWidth() / 2) {
+            // if not on screen
+            else if ((this.y > (ShadowDance.getHeight() + this.image.getWidth() / 2))) {
+                this.active = false;
                 this.visual = false;
             }
         }
@@ -143,9 +167,9 @@ public class Note {
     public void setActive(Boolean active) {
         this.active = active;
     }
-  
-    public void endActive() {
-        this.active = false;
+
+    public void setVisual(Boolean visual) {
+        this.visual = visual;
     }
 
     public int getHeldMidpoint() {
