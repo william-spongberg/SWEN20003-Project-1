@@ -19,90 +19,99 @@ public class Note {
     private static final int UP = 2;
     private static final int DOWN = 3;
 
-    // position
+    // starting y position
     private static final int START_Y = 100;
+    private static final int START_Y_HOLD = 24;
+
+    // hold image midpoint
+    private static final int HOLD_MIDPOINT = 82;
 
     // attributes with default values
     private Image image = IMAGE_NOTEHOLD_LEFT;
     private int delay = 0;
     private int dir = LEFT;
     private int y = 0;
+    private int start_y = START_Y;
     private boolean is_held = false;
-    private boolean visual = false;
     private boolean active = true;
+    private boolean visual = false;
 
     // font [testing]
     private final static String FILE_FONT = "res/FSO8BITR.TTF";
-    private final Font FONT_SMALL = new Font(FILE_FONT, 12);
+    private final Font FONT_SMALL = new Font(FILE_FONT, 20);
 
     public Note(String dir, String type, int delay) {
-        if (type == "Hold") {
+        // if held set to held
+        if (type.equals("Hold")) {
             this.is_held = true;
-
-            switch (dir) {
-                case "Left":
-                    this.image = IMAGE_NOTEHOLD_LEFT;
-                    this.dir = LEFT;
-                    break;
-                case "Right":
-                    this.image = IMAGE_NOTEHOLD_RIGHT;
-                    this.dir = RIGHT;
-                    break;
-                case "Up":
-                    this.image = IMAGE_NOTEHOLD_UP;
-                    this.dir = UP;
-                    break;
-                case "Down":
-                    this.image = IMAGE_NOTEHOLD_DOWN;
-                    this.dir = DOWN;
-                    break;
-                default:
-                    System.out.println("Error: invalid note");
-            }
-        } else {
-            switch (dir) {
-                case "Left":
-                    this.image = IMAGE_NOTE_LEFT;
-                    this.dir = LEFT;
-                    break;
-                case "Right":
-                    this.image = IMAGE_NOTE_RIGHT;
-                    this.dir = RIGHT;
-                    break;
-                case "Up":
-                    this.image = IMAGE_NOTE_UP;
-                    this.dir = UP;
-                    break;
-                case "Down":
-                    this.image = IMAGE_NOTE_DOWN;
-                    this.dir = DOWN;
-                    break;
-                default:
-                    System.out.println("Error: invalid note");
-            }
-            this.delay = delay;
+            start_y = START_Y_HOLD;
         }
+
+        switch (dir) {
+            case "Left":
+                if (this.is_held)
+                    this.image = IMAGE_NOTEHOLD_LEFT;
+                else 
+                    this.image = IMAGE_NOTE_LEFT;
+                this.dir = LEFT;
+                break;
+            case "Right":
+                if (this.is_held)
+                    this.image = IMAGE_NOTEHOLD_RIGHT;
+                else 
+                    this.image = IMAGE_NOTE_RIGHT;
+                this.dir = RIGHT;
+                break;
+            case "Up":
+                if (this.is_held)
+                    this.image = IMAGE_NOTEHOLD_UP;
+                else 
+                    this.image = IMAGE_NOTE_UP;
+                this.dir = UP;
+                break;
+            case "Down":
+                if (this.is_held)
+                    this.image = IMAGE_NOTEHOLD_DOWN;
+                else 
+                    this.image = IMAGE_NOTE_DOWN;
+                this.dir = DOWN;
+                break;
+            default:
+                System.out.println("Error: invalid note");
+        }
+        this.delay = delay;
     }
 
     public void update(int frame, int lane_x[]) {
         if (active) {
             // calculate y position
-            this.y = (START_Y/4 + frame - this.delay)*4;
+            this.y = start_y + (frame - this.delay) * 4;
+
             // if note is on screen
-            if (this.y > START_Y) {
-                // then is visual
+            if (this.y > start_y && (this.y < ShadowDance.getHeight() + this.image.getWidth() / 2)) {
+                // now visual
                 if (!this.visual)
                     this.visual = true;
+
                 // draw note
                 this.image.draw(lane_x[this.dir], this.y);
 
                 // draw note position [testing]
-                /*DrawOptions opt = new DrawOptions();
-                opt.setBlendColour(Colour.RED);
-                FONT_SMALL.drawString("" + this.y, lane_x[this.dir] - FONT_SMALL.getWidth("" + this.y) / 2, this.y,
+                /*
+                DrawOptions opt = new DrawOptions();
+                opt.setBlendColour(Colour.RED);  
+                FONT_SMALL.drawString("" + this.y, lane_x[this.dir] - FONT_SMALL.getWidth(""
+                        + this.y) / 2, this.y,
                         opt);
-                FONT_SMALL.drawString("" + (657 - this.y), lane_x[this.dir] - FONT_SMALL.getWidth("" + this.y) / 2,
-                        this.y + 10, opt);*/
+                opt.setBlendColour(Colour.GREEN);
+                FONT_SMALL.drawString("" + (657 - this.y), lane_x[this.dir] -
+                        FONT_SMALL.getWidth("" + this.y) / 2,
+                        this.y + 10, opt);
+                /* */
+            }
+            // if off screen, no longer need to display note
+            else if (this.y > ShadowDance.getHeight() + this.image.getWidth() / 2) {
+                this.visual = false;
             }
         }
     }
@@ -127,15 +136,19 @@ public class Note {
         return this.is_held;
     }
 
-    public Boolean isVisual() {
-        return this.visual;
-    }
-
     public Boolean isActive() {
         return this.active;
     }
 
+    public void setActive(Boolean active) {
+        this.active = active;
+    }
+  
     public void endActive() {
         this.active = false;
+    }
+
+    public int getHeldMidpoint() {
+        return HOLD_MIDPOINT;
     }
 }
