@@ -12,39 +12,49 @@ import java.util.List;
  * @author William Spongberg
  */
 public class ShadowDance extends AbstractGame {
-    // window dimensions, refresh rate, background and title
+    // window dimensions, refresh rate, title and background
     private final static int WINDOW_WIDTH = 1024;
     private final static int WINDOW_HEIGHT = 768;
-    private final static String REFRESH_RATE = "-60"; // set to empty for 120hz
-    private final Image IMAGE_BACKGROUND = new Image("res/background.png");
+    private final static String REFRESH_RATE_60 = "-60"; // **change to "" for 120hz**
     private final static String GAME_TITLE = "SHADOW DANCE";
+    private final Image IMAGE_BACKGROUND = new Image("res/background.png");
+
+    // file level names
+    private static final String FILE_LEVEL1 = "res/levels/test1" + REFRESH_RATE_60 + ".csv";
+    private static final String FILE_LEVEL2 = "res/levels/level1" + REFRESH_RATE_60 + ".csv";
+
+    // game logic constants
+    private static final int GRADE_FRAMES = 30;
+    private static final int WIN_SCORE = 150;
+
+    // display text
+    DisplayText disp = new DisplayText();
+
+    // array list of levels, current level
+    private List<Level> levels = new ArrayList<Level>();
+    private Level currentLevel;
 
     // game logic booleans
     private boolean paused = false;
     private boolean started = true;
     private boolean ended = false;
+    private Boolean level_ended = false;  
+    private static boolean refresh_60 = false;
 
-    // frame counter, grading frame counter and score
+    // frame counter, grade frames counter, current grade, score, level number
     private int frame = 0;
-    private static final int GRADE_FRAMES = 30;
     private int frames_grading = 0;
     private int current_grade = 0;
     private int score = 0;
-
-    // display text
-    DisplayText disp = new DisplayText();
-
-    // array list of levels
-    private List<Level> levels = new ArrayList<Level>();
-
-    // file level names
-    private static final String FILE_LEVEL1 = "res/levels/level1"+REFRESH_RATE+".csv";
+    private int level_num = 0;
+      
 
     public ShadowDance() {
         super(WINDOW_WIDTH, WINDOW_HEIGHT, GAME_TITLE);
 
         // add levels
         this.levels.add(readCSV(FILE_LEVEL1));
+        this.levels.add(readCSV(FILE_LEVEL2));
         // etc
     }
 
@@ -52,6 +62,10 @@ public class ShadowDance extends AbstractGame {
      * Method used to read files and create level objects.
      */
     private Level readCSV(String fileName) {
+        // if refresh rate is 60hz
+        if (fileName.contains(REFRESH_RATE_60)) {
+            refresh_60 = true;
+        }
         // read csv level files from res into arraylist of arrays of strings
         List<List<String>> records = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
@@ -118,63 +132,111 @@ public class ShadowDance extends AbstractGame {
                 disp.drawStartScreen();
             } else if (ended) { // if game ended
                 disp.drawEndScreen(score);
-                // if space pressed start game again
+
+                // if space pressed reset game
                 if (input.wasPressed(Keys.SPACE)) {
-                    // game restart [TO DO]
+                    // started = true;
+                    ended = false;
+                    score = 0;
+                    frame = 0;
+                    frames_grading = 0;
+                    for (Level level : this.levels) {
+                        level.reset(level);
+                    }
                 }
-            // if game in progress
+                // if game in progress
             } else {
                 // increment frame counter
                 frame++;
 
                 // draw frame counter [testing]
-                /* */
-                disp.drawFrame(frame);
-                /* */
+                /*
+                 * disp.drawFrame(frame);
+                 */
 
-                // update levels
-                for (Level level : this.levels) {
-                    if (level.isActive()) {
-                        // draw score
-                        disp.drawScore(level.getScore());
+                // get current level, activate if not ended
+                currentLevel = levels.get(level_num);
+                if (!level_ended)
+                    currentLevel.setActive(true);
 
-                        // update level
-                        level.update(frame, input);
+                // if current level is running
+                if (currentLevel.isActive()) {
+                    // draw score
+                    disp.drawScore(currentLevel.getScore());
+
+                    // update level
+                    currentLevel.update(frame, input);
+
+                    // if there is a grade to display
+                    if (currentLevel.getGrade() != 0) {
+                        frames_grading = GRADE_FRAMES;
+                        current_grade = currentLevel.getGrade();
+                    }
+
+                    // if there are frames left to display grade
+                    if (frames_grading > 0) {
+                        disp.drawGrade(current_grade);
+                        frames_grading--;
+                    } else {
+                        // reset grade
+                        current_grade = 0;
+                    }
+
+                    // if level no longer active
+                    if (!currentLevel.isActive()) {
+                        // end level, caclulate score
+                        level_ended = true;
                         
-
-                        // if grade to display
-                        if (level.getGrade() != 0) {
-                            frames_grading = GRADE_FRAMES;
-                            current_grade = level.getGrade();
+                        if (currentLevel.getScore() > WIN_SCORE) {
+                            currentLevel.setWin(true);
+                            score += currentLevel.getScore();
+                        } else {
+                            currentLevel.setWin(false);
                         }
-
-                        // if frames left to display grade
-                        if (frames_grading > 0) {
-                            disp.drawGrade(current_grade);
-                            frames_grading--;
+                    }
+                }
+                // if level ended, display win/lose/end screen
+                if (level_ended) {
+                    if (currentLevel.hasWin()) {
+                        disp.drawWinScreen(currentLevel.getScore(), score);
+                        // if space pressed go to next level
+                        if (input.wasPressed(Keys.SPACE)) {
+                            level_ended = false;
+                            // if there are more levels
+                            if (levels.size() - level_num > 1) {
+                                level_num++;
+                                frame = 0;
+                                frames_grading = 0;
+                            // if no more levels, go to end screen
+                            } else {
+                                ended = true;
+                            }
                         }
-                        else {
-                            // reset grade
-                            current_grade = 0;
-                        }
-                        // add score to total score
-                        this.score += level.getScore();
-
-                        // if level ended, go to end screen
-                        if (!level.isActive()) {
-                            ended = true;
-                            score = level.getScore();
+                    } else {
+                        disp.drawLoseScreen(currentLevel.getScore());
+                        // if space pressed try level again
+                        if (input.wasPressed(Keys.SPACE)) {
+                            level_ended = false;
+                            score = 0;
+                            frame = 0;
+                            frames_grading = 0;
+                            currentLevel.reset(currentLevel);
                         }
                     }
                 }
             }
         }
     }
+
     public static final int getWidth() {
         return WINDOW_WIDTH;
     }
 
     public static final int getHeight() {
         return WINDOW_HEIGHT;
+    }
+
+    public static final Boolean hasRefresh60() {
+        return refresh_60;
     }
 }
