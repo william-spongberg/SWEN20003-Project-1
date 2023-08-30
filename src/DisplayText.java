@@ -12,14 +12,6 @@ public final class DisplayText {
     private final Font FONT_SCORE = new Font(FILE_FONT, 30);
     private final Font FONT_GRADE = new Font(FILE_FONT, 40);
 
-    // grading
-    private static final int[] GRADE = { 0, 10, 5, -1, -5 };
-    private static final int GRADE_NONE = 0;
-    private static final int GRADE_PERFECT = 1;
-    private static final int GRADE_GOOD = 2;
-    private static final int GRADE_BAD = 3;
-    private static final int GRADE_MISS = 4;
-
     /* strings */
     // title
     private final static String GAME_TITLE = "SHADOW DANCE";
@@ -28,11 +20,16 @@ public final class DisplayText {
     private static final String START_2 = "USE ARROW KEYS TO PLAY";
     // game play
     private static final String SCORE = "SCORE ";
+    private static final String TOTAL_SCORE = "TOTAL SCORE ";
     private static final String PAUSED = "PAUSED";
-    private static final String PERFECT = "PERFECT";
-    private static final String GOOD = "GOOD";
-    private static final String BAD = "BAD";
-    private static final String MISS = "MISS";
+    private static final String STRING_PERFECT = "PERFECT";
+    private static final String STRING_GOOD = "GOOD";
+    private static final String STRING_BAD = "BAD";
+    private static final String STRING_MISS = "MISS";
+    // level win
+    private static final String CLEAR = "CLEAR!";
+    // level lose
+    private static final String LOSE = "TRY AGAIN";
     // game over
     private static final String GAME_OVER = "GAME OVER";
     private static final String GAME_RESTART = "PRESS SPACE TO RESTART";
@@ -62,43 +59,59 @@ public final class DisplayText {
     }
 
     public final void drawPerfect() {
-        FONT_GRADE.drawString(PERFECT, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(PERFECT) / 2,
+        FONT_GRADE.drawString(STRING_PERFECT, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(STRING_PERFECT) / 2,
                 WINDOW_HEIGHT / 2);
     }
 
     public final void drawGood() {
-        FONT_GRADE.drawString(GOOD, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(GOOD) / 2,
+        FONT_GRADE.drawString(STRING_GOOD, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(STRING_GOOD) / 2,
                 WINDOW_HEIGHT / 2);
     }
 
     public final void drawBad() {
-        FONT_GRADE.drawString(BAD, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(BAD) / 2,
+        FONT_GRADE.drawString(STRING_BAD, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(STRING_BAD) / 2,
                 WINDOW_HEIGHT / 2);
     }
 
     public final void drawMiss() {
-        FONT_GRADE.drawString(MISS, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(MISS) / 2,
+        FONT_GRADE.drawString(STRING_MISS, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(STRING_MISS) / 2,
                 WINDOW_HEIGHT / 2);
     }
 
     public final void drawGrade(int grade) {
-        if (grade == GRADE[GRADE_PERFECT]) {
-                drawPerfect();
-        } else if (grade == GRADE[GRADE_GOOD]) {
-                drawGood();
-        } else if (grade == GRADE[GRADE_BAD]) {
-                drawBad();
-        } else if (grade == GRADE[GRADE_MISS]) {
-                drawMiss();
+        if (grade == Grade.getPerfectGrade()) {
+            drawPerfect();
+        } else if (grade == Grade.getGoodGrade()) {
+            drawGood();
+        } else if (grade == Grade.getBadGrade()) {
+            drawBad();
+        } else if (grade == Grade.getMissGrade()) {
+            drawMiss();
         } else {
             System.out.println("Error: invalid grade");
         }
     }
 
-    public final void drawEndScreen(int score) {
-        FONT.drawString(GAME_OVER, WINDOW_WIDTH / 2 - FONT.getWidth(GAME_OVER) / 2,
+    public final void drawWinScreen(int score, int total_score) {
+        FONT.drawString(CLEAR, WINDOW_WIDTH / 2 - FONT.getWidth(CLEAR) / 2,
                 WINDOW_HEIGHT / 2 - 100);
         FONT_SMALL.drawString(SCORE + score, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(SCORE + score) / 2,
+                WINDOW_HEIGHT / 2);
+        FONT_SMALL.drawString(TOTAL_SCORE + total_score, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(TOTAL_SCORE + total_score) / 2,
+                WINDOW_HEIGHT / 2 + 50);
+    }
+
+    public final void drawLoseScreen(int score) {
+        FONT.drawString(LOSE, WINDOW_WIDTH / 2 - FONT.getWidth(LOSE) / 2,
+                WINDOW_HEIGHT / 2 - 100);
+        FONT_SMALL.drawString(SCORE + score, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(SCORE + score) / 2,
+                WINDOW_HEIGHT / 2);
+    }
+
+    public final void drawEndScreen(int total_score) {
+        FONT.drawString(GAME_OVER, WINDOW_WIDTH / 2 - FONT.getWidth(GAME_OVER) / 2,
+                WINDOW_HEIGHT / 2 - 100);
+        FONT_SMALL.drawString(SCORE + total_score, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(SCORE + total_score) / 2,
                 WINDOW_HEIGHT / 2);
 
         FONT_SMALL.drawString(GAME_RESTART,
