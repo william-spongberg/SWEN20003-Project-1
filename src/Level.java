@@ -1,8 +1,11 @@
 import java.util.ArrayList;
 import java.util.List;
 
+import bagel.Drawing;
 import bagel.Image;
 import bagel.Input;
+import bagel.util.Colour;
+import bagel.util.Point;
 
 public class Level {
     // images
@@ -11,11 +14,11 @@ public class Level {
     private final Image IMAGE_LANE_UP = new Image("res/laneUp.png");
     private final Image IMAGE_LANE_DOWN = new Image("res/laneDown.png");
 
-    // display text
-    DisplayText disp = new DisplayText();
-
     // position
     private static final int LANE_Y = 384;
+
+    // grade y position [testing]
+    private static final int NOTE_STATIONARY_Y = 657;
 
     // csv file indices
     private static final int INDEX_LANE = 0;
@@ -31,32 +34,71 @@ public class Level {
     // attributes with default values
     private List<Note> notes = new ArrayList<Note>();
     private int[] lane_x = new int[4];
-    private boolean active = false;
-    private static int num = -1;
     private int score = 0;
-    private Note currentNote;
-    private boolean holding = false;
     private int grade = 0;
+    private boolean holding = false; 
+    private boolean active = false;
+    private Boolean win = false;
+    private Note currentNote;
 
     public Level(List<List<String>> file) {
         reset(file);
     }
 
+    public void reset(List<List<String>> file) {
+        // print out csv file [testing]
+        /* */
+        for (List<String> record : file) {
+            System.out.println(record);
+        }
+        /* */
+
+        // create objects from csv file
+        int i = 0;
+        for (List<String> record : file) {
+            // get lane x coords and create list of notes
+            if (record.get(INDEX_LANE).equals("Lane")) {
+                this.lane_x[i] = Integer.parseInt(record.get(INDEX_DELAY));
+                i++;
+            } else {
+                this.notes.add(new Note(record.get(INDEX_LANE), record.get(INDEX_TYPE),
+                        Integer.parseInt(record.get(INDEX_DELAY))));
+            }
+        }
+
+        // get first note
+        this.currentNote = notes.get(0);
+    }
+
+    public void reset(Level level) {
+        this.notes = level.getNotes();
+        for (Note note: notes) {
+            note.reset(note);
+        }
+        this.currentNote = notes.get(0);
+
+        this.score = 0;
+        this.grade = 0;
+        this.win = false;
+        this.holding = false;
+        this.active = false;
+    }
+
     public void update(int frame, Input input) {
         Grade grade = new Grade();
-        if (currentNote.isActive()) {
+        if (this.currentNote.isActive()) {
             // check score while current note is active
-            Boolean[] array = grade.checkScore(currentNote, input, this.holding);
+            Boolean[] array = grade.checkScore(this.currentNote, input, this.holding);
             // set new holding and active states
-            currentNote.setActive(array[0]);
+            this.currentNote.setActive(array[0]);
             this.holding = array[1];
         }
 
-        // if current note inactive
-        if (!currentNote.isActive()) {
+        // if current note now inactive
+        if (!this.currentNote.isActive()) {
             // get next note if more left
-            if (notes.indexOf(currentNote) < notes.size() - 1) {
-                currentNote = notes.get(notes.indexOf(currentNote) + 1);
+            if (notes.indexOf(this.currentNote) < notes.size() - 1) {
+                this.currentNote = notes.get(notes.indexOf(this.currentNote) + 1);
             } else {
                 // if no more notes, end level
                 this.active = false;
@@ -89,58 +131,22 @@ public class Level {
         Drawing.drawLine(a, b, 15, Colour.GREEN);
         /* */
 
-        // draw distance to note [testing]
-        /* 
-        a = new Point(lane_x[currentNote.getDir()], currentNote.getY());
-        b = new Point(lane_x[currentNote.getDir()], NOTE_STATIONARY_Y);
-        Drawing.drawLine(a, b, 5, Colour.BLUE);
-        /* */
-
         // draw notes
         for (Note note : this.notes) {
             note.update(frame, lane_x);
         }        
     }
 
-    private void reset(List<List<String>> file) {
-        // print out csv file [testing]
-        /* */
-        for (List<String> record : file) {
-            System.out.println(record);
-        }
-        /* */
-
-        // create objects from csv file
-        int i = 0;
-        for (List<String> record : file) {
-            // get lane x coords and create list of notes
-            if (record.get(INDEX_LANE).equals("Lane")) {
-                this.lane_x[i] = Integer.parseInt(record.get(INDEX_DELAY));
-                i++;
-            } else {
-                this.notes.add(new Note(record.get(INDEX_LANE), record.get(INDEX_TYPE),
-                        Integer.parseInt(record.get(INDEX_DELAY))));
-            }
-        }
-
-        // get first note
-        currentNote = notes.get(0);
-
-        // activate level
-        this.active = true;
-        num++;
-    }
-
     public Boolean isActive() {
         return this.active;
     }
 
-    public void endActive() {
-        this.active = false;
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 
-    public static Integer getNum() {
-        return num;
+    public List<Note> getNotes() {
+        return this.notes;
     }
 
     public Integer getScore() {
@@ -149,5 +155,13 @@ public class Level {
 
     public Integer getGrade() {
         return this.grade;
+    }
+
+    public Boolean hasWin() {
+        return this.win;
+    }
+
+    public void setWin(Boolean win) {
+        this.win = win;
     }
 }
