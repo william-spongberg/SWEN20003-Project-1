@@ -23,6 +23,10 @@ public class Note {
     private static final int START_Y = 100;
     private static final int START_Y_HOLD = 24;
 
+    // refresh rate speed multipliers
+    private static final int REFRESH_60_MULTIPLIER = 4;
+    private static final int REFRESH_120_MULTIPLIER = 2;
+
     // hold image midpoint
     private static final int HOLD_MIDPOINT = 82;
 
@@ -104,10 +108,10 @@ public class Note {
             // calculate y position
             // if 60 hz
             if (ShadowDance.hasRefresh60()) {
-                this.y = start_y + (frame - this.delay) * 4;
+                this.y = start_y + (frame - this.delay) * REFRESH_60_MULTIPLIER;
             // else is 120 hz (according to marker)
             } else {
-                this.y = start_y + (frame - this.delay) * 2;
+                this.y = start_y + (frame - this.delay) * REFRESH_120_MULTIPLIER;
             }
 
             // if note is on screen
