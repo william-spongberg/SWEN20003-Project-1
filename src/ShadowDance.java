@@ -17,7 +17,8 @@ public class ShadowDance extends AbstractGame {
     private final static int WINDOW_HEIGHT = 768;
     private final static String _60 = "-60";
     private final static String _120 = "-120";
-    private final static String REFRESH_RATE = _60; /* NOTE TO MARKERS: change to _120 for 120hz */
+    private final static String REFRESH_RATE = _60;
+    /** NOTE TO MARKERS: change to _120 for 120hz **/
     private final static String GAME_TITLE = "SHADOW DANCE";
     private final Image IMAGE_BACKGROUND = new Image("res/background.png");
 
@@ -40,7 +41,7 @@ public class ShadowDance extends AbstractGame {
     private boolean paused = false;
     private boolean started = true;
     private boolean ended = false;
-    private Boolean level_ended = false;  
+    private Boolean level_ended = false;
     private static boolean refresh_60 = false;
 
     // frame counter, grade frames counter, current grade, score, level number
@@ -48,8 +49,8 @@ public class ShadowDance extends AbstractGame {
     private int frames_grading = 0;
     private int current_grade = 0;
     private int score = 0;
+    private int high_score = 0;
     private int level_num = 0;
-      
 
     public ShadowDance() {
         super(WINDOW_WIDTH, WINDOW_HEIGHT, GAME_TITLE);
@@ -60,9 +61,7 @@ public class ShadowDance extends AbstractGame {
         // etc
     }
 
-    /**
-     * Method used to read files and create level objects.
-     */
+    // read csv files and create level objects
     private Level readCSV(String fileName) {
         // if refresh rate is 60hz
         if (fileName.contains(_60)) {
@@ -84,28 +83,17 @@ public class ShadowDance extends AbstractGame {
         return new Level(records);
     }
 
-    /**
-     * The entry point for the program.
-     */
+    // program entry point
     public static void main(String[] args) {
         ShadowDance game = new ShadowDance();
         game.run();
     }
 
-    /**
-     * Performs a state update.
-     * Allows the game to exit when the escape key is pressed.
-     * Allows the game to pause when the tab key is pressed.
-     * 
-     * Contains game state logic.
-     * 
-     * Refreshed at user monitor refresh rate (typically 60Hz, but
-     * will be marked on a 120hz monitor).
-     */
+    // performs a state update REFRESH_RATE times every second
     @Override
     protected void update(Input input) {
         // draw background
-        disp.drawBackground(IMAGE_BACKGROUND);
+        this.disp.drawBackground(IMAGE_BACKGROUND);
 
         // allow user to exit
         if (input.wasPressed(Keys.ESCAPE)) {
@@ -114,110 +102,100 @@ public class ShadowDance extends AbstractGame {
 
         // pause logic
         if (input.wasPressed(Keys.TAB)) {
-            if (!paused)
-                paused = true;
+            if (!this.paused)
+                this.paused = true;
             else
-                paused = false;
+                this.paused = false;
         }
 
-        // game state logic
-        if (paused) {
-            disp.drawPauseScreen();
+        /* game state logic */
+        // if paused
+        if (this.paused) {
+            this.disp.drawPauseScreen();
         } else {
-            // if space pressed start game
-            if (input.wasPressed(Keys.SPACE)) {
-                started = false;
-            }
+            // allow user to start game
+            if (input.wasPressed(Keys.SPACE))
+                this.started = false;
 
             // if game started
-            if (started) {
-                disp.drawStartScreen();
-            } else if (ended) { // if game ended
-                disp.drawEndScreen(score);
-
-                // if "r" pressed restart game
-                restartGame(input);
-
-            // if game in progress
+            if (this.started) {
+                this.disp.drawStartScreen();
+                // if game ended
+            } else if (this.ended) {
+                enableRestart(input);
+                this.disp.drawEndScreen(score, high_score);
+                // else in progress
             } else {
-                // if "r" pressed restart game
-                restartGame(input);
+                enableRestart(input);
 
                 // increment frame counter
-                frame++;
-
-                // draw frame counter [testing]
-                /*
-                 * disp.drawFrame(frame);
-                 */
+                this.frame++;
 
                 // get current level, activate if not ended
-                currentLevel = levels.get(level_num);
-                if (!level_ended)
-                    currentLevel.setActive(true);
+                this.currentLevel = this.levels.get(level_num);
+                if (!this.level_ended)
+                    this.currentLevel.setActive(true);
 
                 // if current level is running
-                if (currentLevel.isActive()) {
-                    // draw score
-                    disp.drawScore(currentLevel.getScore());
+                if (this.currentLevel.isActive()) {
+                    this.disp.drawScore(this.currentLevel.getScore());
+                    this.currentLevel.update(this.frame, input);
 
-                    // update level
-                    currentLevel.update(frame, input);
-
-                    // if there is a grade to display
-                    if (currentLevel.getGrade() != 0) {
-                        frames_grading = GRADE_FRAMES;
-                        current_grade = currentLevel.getGrade();
+                    // if there is a new grade, get new grade
+                    if (this.currentLevel.getGrade() != 0) {
+                        this.frames_grading = GRADE_FRAMES;
+                        this.current_grade = this.currentLevel.getGrade();
                     }
 
-                    // if there are frames left to display grade
-                    if (frames_grading > 0) {
-                        disp.drawGrade(current_grade);
-                        frames_grading--;
-                    } else {
-                        // reset grade
-                        current_grade = 0;
-                    }
+                    // if there are frames left to display grade, display it
+                    if (this.frames_grading > 0) {
+                        this.disp.drawGrade(this.current_grade);
+                        this.frames_grading--;
+                        // else reset grade
+                    } else
+                        this.current_grade = 0;
 
                     // if level no longer active
-                    if (!currentLevel.isActive()) {
-                        // end level, caclulate score
-                        level_ended = true;
-                        
-                        if (currentLevel.getScore() >= WIN_SCORE) {
-                            currentLevel.setWin(true);
-                            score += currentLevel.getScore();
+                    if (!this.currentLevel.isActive()) {
+                        // end level
+                        this.level_ended = true;
+
+                        // calculate if player won level, add score
+                        if (this.currentLevel.getScore() >= WIN_SCORE) {
+                            this.currentLevel.setWin(true);
+                            this.score += this.currentLevel.getScore();
+                            if (this.score > this.high_score)
+                                this.high_score = this.score;
                         } else {
-                            currentLevel.setWin(false);
+                            this.currentLevel.setWin(false);
                         }
                     }
                 }
                 // if level ended, display win/lose/end screen
-                if (level_ended) {
-                    if (currentLevel.hasWin()) {
-                        disp.drawWinScreen(currentLevel.getScore(), score);
-                        // if space pressed go to next level
+                if (this.level_ended) {
+                    if (this.currentLevel.hasWin()) {
+                        this.disp.drawWinScreen(this.currentLevel.getScore(), this.score);
+                        // allow user to go to next level
                         if (input.wasPressed(Keys.SPACE)) {
-                            level_ended = false;
+                            this.level_ended = false;
                             // if there are more levels
-                            if (levels.size() - level_num > 1) {
-                                level_num++;
-                                frame = 0;
-                                frames_grading = 0;
-                            // if no more levels, go to end screen
-                            } else {
-                                ended = true;
-                            }
+                            if (this.levels.size() - this.level_num > 1) {
+                                this.level_num++;
+                                this.frame = 0;
+                                this.frames_grading = 0;
+                                // if no more levels, game ended
+                            } else
+                                this.ended = true;
                         }
                     } else {
-                        disp.drawLoseScreen(currentLevel.getScore());
-                        // if space pressed try level again
+                        this.disp.drawLoseScreen(this.currentLevel.getScore());
+                        // allow user to restart level
                         if (input.wasPressed(Keys.SPACE)) {
-                            level_ended = false;
-                            currentLevel.setScore(0);
-                            frame = 0;
-                            frames_grading = 0;
-                            currentLevel.reset(currentLevel);
+                            this.level_ended = false;
+                            this.currentLevel.setScore(0);
+                            this.frame = 0;
+                            this.frames_grading = 0;
+                            this.currentLevel.reset(this.currentLevel);
                         }
                     }
                 }
@@ -225,19 +203,26 @@ public class ShadowDance extends AbstractGame {
         }
     }
 
-    private void restartGame(Input input) {
+    // allow user to restart game on key R
+    private void enableRestart(Input input) {
         if (input.wasPressed(Keys.R)) {
             this.started = true;
             this.ended = false;
-            this.score = 0;
+            this.level_ended = false;
+
             this.frame = 0;
             this.frames_grading = 0;
+            this.current_grade = 0;
+            this.score = 0;
+            this.level_num = 0;
+
             for (Level level : this.levels) {
                 level.reset(level);
             }
         }
     }
 
+    /* getters */
     public static final int getWidth() {
         return WINDOW_WIDTH;
     }
