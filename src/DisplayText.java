@@ -20,7 +20,6 @@ public final class DisplayText {
     private static final String START_2 = "USE ARROW KEYS TO PLAY";
     // game play
     private static final String SCORE = "SCORE ";
-    private static final String TOTAL_SCORE = "TOTAL SCORE ";
     private static final String PAUSED = "PAUSED";
     private static final String STRING_PERFECT = "PERFECT";
     private static final String STRING_GOOD = "GOOD";
@@ -28,17 +27,19 @@ public final class DisplayText {
     private static final String STRING_MISS = "MISS";
     // level win
     private static final String CLEAR = "CLEAR!";
+    private static final String TOTAL_SCORE = "TOTAL SCORE ";
     // level lose
     private static final String LOSE = "TRY AGAIN";
     private static final String NEED_SCORE = "NEED 150 TO CONTINUE";
     // game over
     private static final String GAME_OVER = "GAME OVER";
+    private static final String HIGH_SCORE = "HIGH SCORE ";
     private static final String GAME_RESTART = "PRESS R TO RESTART";
-    // testing
-    /* */
-    private static final String FRAME = "FRAME ";
-    /* */
 
+    /* methods */
+    // centered text, small font for subtitles
+
+    /* draw passive screens */
     public final void drawBackground(Image image) {
         image.draw(Window.getWidth() / 2.0, Window.getHeight() / 2.0);
     }
@@ -50,15 +51,17 @@ public final class DisplayText {
                 WINDOW_HEIGHT / 2 + 50);
     }
 
-    public final void drawScore(int score) {
-        FONT_SCORE.drawString(SCORE + score, 35, 35);
-    }
-
     public final void drawPauseScreen() {
         FONT.drawString(PAUSED, WINDOW_WIDTH / 2 - FONT.getWidth(PAUSED) / 2,
                 WINDOW_HEIGHT / 2);
     }
 
+    // draw score
+    public final void drawScore(int score) {
+        FONT_SCORE.drawString(SCORE + score, 35, 35);
+    }
+
+    /* draw grade methods */
     public final void drawPerfect() {
         FONT_GRADE.drawString(STRING_PERFECT, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(STRING_PERFECT) / 2,
                 WINDOW_HEIGHT / 2);
@@ -79,6 +82,7 @@ public final class DisplayText {
                 WINDOW_HEIGHT / 2);
     }
 
+    // draw grade according to grade
     public final void drawGrade(int grade) {
         if (grade == Grade.getPerfectGrade()) {
             drawPerfect();
@@ -93,12 +97,14 @@ public final class DisplayText {
         }
     }
 
+    /* draw win/lose/end screen */
     public final void drawWinScreen(int score, int total_score) {
         FONT.drawString(CLEAR, WINDOW_WIDTH / 2 - FONT.getWidth(CLEAR) / 2,
                 WINDOW_HEIGHT / 2 - 100);
         FONT_SMALL.drawString(SCORE + score, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(SCORE + score) / 2,
                 WINDOW_HEIGHT / 2);
-        FONT_SMALL.drawString(TOTAL_SCORE + total_score, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(TOTAL_SCORE + total_score) / 2,
+        FONT_SMALL.drawString(TOTAL_SCORE + total_score,
+                WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(TOTAL_SCORE + total_score) / 2,
                 WINDOW_HEIGHT / 2 + 50);
     }
 
@@ -111,25 +117,17 @@ public final class DisplayText {
                 WINDOW_HEIGHT / 2 + 50);
     }
 
-    public final void drawEndScreen(int total_score) {
+    public final void drawEndScreen(int total_score, int high_score) {
         FONT.drawString(GAME_OVER, WINDOW_WIDTH / 2 - FONT.getWidth(GAME_OVER) / 2,
                 WINDOW_HEIGHT / 2 - 100);
-        FONT_SMALL.drawString(TOTAL_SCORE + total_score, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(TOTAL_SCORE + total_score) / 2,
+        FONT_SMALL.drawString(TOTAL_SCORE + total_score,
+                WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(TOTAL_SCORE + total_score) / 2,
                 WINDOW_HEIGHT / 2);
-
-        FONT_SMALL.drawString(GAME_RESTART,  
-                WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(GAME_RESTART) / 2,
+        FONT_SMALL.drawString(HIGH_SCORE + high_score,
+                WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(HIGH_SCORE + high_score) / 2,
                 WINDOW_HEIGHT / 2 + 50);
+        FONT_SMALL.drawString(GAME_RESTART,
+                WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(GAME_RESTART) / 2,
+                WINDOW_HEIGHT / 2 + 150);
     }
-
-    // testing
-    /* */
-    public final void drawFrame(int frame) {
-        FONT_SMALL.drawString(FRAME + frame, WINDOW_WIDTH - FONT.getWidth(FRAME + frame) / 3 - 50, 50);
-    }
-
-    public final void drawDistance(int distance) {
-        FONT_SMALL.drawString("" + distance, WINDOW_WIDTH - FONT.getWidth("" + distance) / 3 - 50, 100);
-    }
-    /* */
 }
