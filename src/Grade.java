@@ -1,6 +1,4 @@
 import bagel.*;
-import bagel.util.Colour;
-import bagel.util.Point;
 
 public class Grade {
     // grading
@@ -30,6 +28,7 @@ public class Grade {
     // attributes with default values
     private int grade = 0;
 
+    // get score from player input
     public Boolean[] checkScore(Note note, Input input, Boolean holding) {
         // input, note_y set to defualt
         int dir = INVALID, note_y = note.getY();
@@ -40,102 +39,73 @@ public class Grade {
         }
         // else if note is held and not already holding
         else if (note.isHeld() && !holding) {
-            // get input
             dir = checkInputPressed(input);
             // if valid input
             if (dir != INVALID) {
-                // get bottom of held note
+                // get bottom of held note, now holding
                 note_y = note.getY() + note.getHeldMidpoint();
                 holding = true;
             }
         }
         // else if note is held and already holding
         else if (note.isHeld() && holding) {
-            // get input
             dir = checkInputReleased(input);
             // if valid input
             if (dir != INVALID) {
-                // get top of held note
+                // get top of held note, now not holding
                 note_y = note.getY() - note.getHeldMidpoint();
                 holding = false;
             }
         }
 
-        // check distance [testing]
-        /*
-        Point a = new Point(50, note_y);
-        Point b = new Point(50, NOTE_STATIONARY_Y);
-        Drawing.drawLine(a, b, 5, Colour.BLUE);
-        /* */
-
-        // if close enough for grading
-        if (NOTE_STATIONARY_Y - note_y <= DISTANCE[MISS]) {
-            // grade the input
+        // if in grading range
+        if ((NOTE_STATIONARY_Y - note_y <= DISTANCE[MISS]) && (((NOTE_STATIONARY_Y - note_y >= 0) && !note.isHeld())
+                || ((NOTE_STATIONARY_Y - note_y + note.getHeldMidpoint() >= 0) && note.isHeld()))) {
+            // grade the input, kill note if graded and not holding
             if (gradeInput(dir, note, note_y)) {
-                // if note graded and not holding, set note to inactive
                 if (!holding)
                     note.setActive(false);
             }
         }
-
+        // else if past grading range
+        else if (!(NOTE_STATIONARY_Y - note_y >= 0)) {
+            note.setActive(false);
+        }
         return new Boolean[] { note.isActive(), holding };
     }
 
+    // grade player input
     public Boolean gradeInput(int dir, Note note, int note_y) {
         boolean graded = false;
-        // TO DO: hold notes deleting too early/not grading properly
-
-        // if unable to hit note
-        if ((note_y > NOTE_STATIONARY_Y) && !note.isHeld()) {
-            this.grade = GRADE[MISS];
-            graded = true;
-
-            System.out.println("MISS - off screen");
-        }
-        // if on screen, valid input and note can be hit
-        else if (dir != INVALID && note_y <= NOTE_STATIONARY_Y) {
+        // if valid input and note is on screen
+        if (dir != INVALID && note_y <= NOTE_STATIONARY_Y) {
             // if wrong direction
             if (dir != note.getDir()) {
                 this.grade = GRADE[MISS];
-
-                System.out.println("MISS - wrong direction");
-                System.out.println("" + dir + " != " + note.getDir());
-            }
-            // if within PERFECT range
-            else if (NOTE_STATIONARY_Y - note_y <= DISTANCE[PERFECT]) {
-                this.grade = GRADE[PERFECT];
-                graded = true;
-                note.setVisual(false);
-
-                System.out.println("PERFECT");
-                // if within GOOD range
-            } else if (NOTE_STATIONARY_Y - note_y <= DISTANCE[GOOD]) {
-                this.grade = GRADE[GOOD];
-                graded = true;
-                note.setVisual(false);
-
-                System.out.println("GOOD");
-                // if within BAD range
-            } else if (NOTE_STATIONARY_Y - note_y <= DISTANCE[BAD]) {
-                this.grade = GRADE[BAD];
-                graded = true;
-                note.setVisual(false);
-
-                System.out.println("BAD");
-                // if within MISS range
-            } else if (NOTE_STATIONARY_Y - note_y <= DISTANCE[MISS]) {
-                this.grade = GRADE[MISS];
-                graded = true;
-                note.setVisual(false);
-
-                System.out.println("MISS");
+                // if within range
+            } else if (graded = gradeDistance(PERFECT, note, note_y)) {
+            } else if (graded = gradeDistance(GOOD, note, note_y)) {
+            } else if (graded = gradeDistance(BAD, note, note_y)) {
+            } else if (graded = gradeDistance(MISS, note, note_y)) {
             }
         }
         return graded;
     }
 
+    // grade player input for range grade
+    // and set note to graded + not visual
+    public Boolean gradeDistance(int grade, Note note, int note_y) {
+        // if in grade range
+        if (NOTE_STATIONARY_Y - note_y <= DISTANCE[grade]) {
+            this.grade = GRADE[grade];
+            note.setVisual(false);
+            return true;
+        }
+        return false;
+    }
+
+    // check for key released
     public Integer checkInputReleased(Input input) {
-        // check for input
         if (input.wasReleased(Keys.LEFT)) {
             return LEFT;
         } else if (input.wasReleased(Keys.RIGHT)) {
@@ -149,8 +119,8 @@ public class Grade {
         }
     }
 
+    // check for key pressed
     public Integer checkInputPressed(Input input) {
-        // check for input
         if (input.wasPressed(Keys.LEFT)) {
             return LEFT;
         } else if (input.wasPressed(Keys.RIGHT)) {
@@ -164,6 +134,7 @@ public class Grade {
         }
     }
 
+    /* getters */
     public int getGrade() {
         return this.grade;
     }
