@@ -158,8 +158,6 @@ public class ShadowDance extends AbstractGame {
 
                 // if current level is running
                 if (currentLevel.isActive()) {
-                    // TO DO: restart button
-
                     // draw score
                     disp.drawScore(currentLevel.getScore());
 
