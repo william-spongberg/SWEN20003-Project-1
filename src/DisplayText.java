@@ -30,9 +30,10 @@ public final class DisplayText {
     private static final String CLEAR = "CLEAR!";
     // level lose
     private static final String LOSE = "TRY AGAIN";
+    private static final String NEED_SCORE = "NEED 150 TO CONTINUE";
     // game over
     private static final String GAME_OVER = "GAME OVER";
-    private static final String GAME_RESTART = "PRESS SPACE TO RESTART";
+    private static final String GAME_RESTART = "PRESS R TO RESTART";
     // testing
     /* */
     private static final String FRAME = "FRAME ";
@@ -106,15 +107,17 @@ public final class DisplayText {
                 WINDOW_HEIGHT / 2 - 100);
         FONT_SMALL.drawString(SCORE + score, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(SCORE + score) / 2,
                 WINDOW_HEIGHT / 2);
+        FONT_SMALL.drawString(NEED_SCORE, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(NEED_SCORE) / 2,
+                WINDOW_HEIGHT / 2 + 50);
     }
 
     public final void drawEndScreen(int total_score) {
         FONT.drawString(GAME_OVER, WINDOW_WIDTH / 2 - FONT.getWidth(GAME_OVER) / 2,
                 WINDOW_HEIGHT / 2 - 100);
-        FONT_SMALL.drawString(SCORE + total_score, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(SCORE + total_score) / 2,
+        FONT_SMALL.drawString(TOTAL_SCORE + total_score, WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(TOTAL_SCORE + total_score) / 2,
                 WINDOW_HEIGHT / 2);
 
-        FONT_SMALL.drawString(GAME_RESTART,
+        FONT_SMALL.drawString(GAME_RESTART,  
                 WINDOW_WIDTH / 2 - FONT_SMALL.getWidth(GAME_RESTART) / 2,
                 WINDOW_HEIGHT / 2 + 50);
     }
