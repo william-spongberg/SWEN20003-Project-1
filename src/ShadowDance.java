@@ -15,13 +15,15 @@ public class ShadowDance extends AbstractGame {
     // window dimensions, refresh rate, title and background
     private final static int WINDOW_WIDTH = 1024;
     private final static int WINDOW_HEIGHT = 768;
-    private final static String REFRESH_RATE_60 = "-60"; // **change to "" for 120hz**
+    private final static String _60 = "-60";
+    private final static String _120 = "-120";
+    private final static String REFRESH_RATE = _60; /* NOTE TO MARKERS: change to _120 for 120hz */
     private final static String GAME_TITLE = "SHADOW DANCE";
     private final Image IMAGE_BACKGROUND = new Image("res/background.png");
 
     // file level names
-    private static final String FILE_LEVEL1 = "res/levels/test1" + REFRESH_RATE_60 + ".csv";
-    private static final String FILE_LEVEL2 = "res/levels/level1" + REFRESH_RATE_60 + ".csv";
+    private static final String FILE_LEVEL1 = "res/levels/test1" + REFRESH_RATE + ".csv";
+    private static final String FILE_LEVEL2 = "res/levels/level1" + REFRESH_RATE + ".csv";
 
     // game logic constants
     private static final int GRADE_FRAMES = 30;
@@ -63,7 +65,7 @@ public class ShadowDance extends AbstractGame {
      */
     private Level readCSV(String fileName) {
         // if refresh rate is 60hz
-        if (fileName.contains(REFRESH_RATE_60)) {
+        if (fileName.contains(_60)) {
             refresh_60 = true;
         }
         // read csv level files from res into arraylist of arrays of strings
@@ -133,19 +135,14 @@ public class ShadowDance extends AbstractGame {
             } else if (ended) { // if game ended
                 disp.drawEndScreen(score);
 
-                // if space pressed reset game
-                if (input.wasPressed(Keys.SPACE)) {
-                    // started = true;
-                    ended = false;
-                    score = 0;
-                    frame = 0;
-                    frames_grading = 0;
-                    for (Level level : this.levels) {
-                        level.reset(level);
-                    }
-                }
-                // if game in progress
+                // if "r" pressed restart game
+                restartGame(input);
+
+            // if game in progress
             } else {
+                // if "r" pressed restart game
+                restartGame(input);
+
                 // increment frame counter
                 frame++;
 
@@ -161,6 +158,8 @@ public class ShadowDance extends AbstractGame {
 
                 // if current level is running
                 if (currentLevel.isActive()) {
+                    // TO DO: restart button
+
                     // draw score
                     disp.drawScore(currentLevel.getScore());
 
@@ -187,7 +186,7 @@ public class ShadowDance extends AbstractGame {
                         // end level, caclulate score
                         level_ended = true;
                         
-                        if (currentLevel.getScore() > WIN_SCORE) {
+                        if (currentLevel.getScore() >= WIN_SCORE) {
                             currentLevel.setWin(true);
                             score += currentLevel.getScore();
                         } else {
@@ -217,13 +216,26 @@ public class ShadowDance extends AbstractGame {
                         // if space pressed try level again
                         if (input.wasPressed(Keys.SPACE)) {
                             level_ended = false;
-                            score = 0;
+                            currentLevel.setScore(0);
                             frame = 0;
                             frames_grading = 0;
                             currentLevel.reset(currentLevel);
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private void restartGame(Input input) {
+        if (input.wasPressed(Keys.R)) {
+            this.started = true;
+            this.ended = false;
+            this.score = 0;
+            this.frame = 0;
+            this.frames_grading = 0;
+            for (Level level : this.levels) {
+                level.reset(level);
             }
         }
     }
